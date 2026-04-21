@@ -17,13 +17,13 @@
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getDatabase, ref, push, set, get, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
   const firebaseConfig = {
-    apiKey: "AIzaSyPLACEHOLDER",
+    apiKey: "AIzaSyA3P7lYuiDnp4gnLvlHagUC-Mm0_xXgQI0",
     authDomain: "barroso-app.firebaseapp.com",
     databaseURL: "https://barroso-app-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "barroso-app",
-    storageBucket: "barroso-app.appspot.com",
-    messagingSenderId: "000000000000",
-    appId: "1:000000000000:web:000000000000"
+    storageBucket: "barroso-app.firebasestorage.app",
+    messagingSenderId: "880797631146",
+    appId: "1:880797631146:web:c40d017d38a95a2cba46d3"
   };
   window._fbApp = initializeApp(firebaseConfig);
   window._db = getDatabase(window._fbApp);
@@ -234,7 +234,6 @@ body{font-family:'Barlow',sans-serif;background:var(--arena);color:var(--text);m
       <div class="topbar-info">
         <div class="topbar-name" id="topbar-name">Chofer</div>
         <div class="topbar-mat" id="topbar-mat">—</div>
-        <div class="topbar-mat" id="topbar-remolque" style="color:#E8650A;display:none;"></div>
       </div>
     </div>
     <div class="topbar-right">
@@ -280,36 +279,6 @@ body{font-family:'Barlow',sans-serif;background:var(--arena);color:var(--text);m
           <div class="campo-label">Hora llegada</div>
           <input type="time" id="hora-llegada" class="num-input" style="font-size:15px;padding:10px;">
         </div>
-      </div>
-    </div>
-
-    <!-- TRANSPORTISTA — Carta de Porte -->
-    <div class="card">
-      <div class="card-title"><div class="card-title-dot"></div>Transportista · Carta de Porte</div>
-      <div style="background:#fff8f4;border:1px solid #E8650A;border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:12px;font-size:12px;color:#BA5008;">
-        Obligatorio por Ley · Real Decreto 159/2023
-      </div>
-      <div style="margin-bottom:10px;">
-        <div class="campo-label">Empresa transportista</div>
-        <input class="obra-input" id="input-transportista" value="Excavaciones Barroso SL" placeholder="Empresa transportista...">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div>
-          <div class="campo-label">Matrícula camión</div>
-          <input class="obra-input" id="input-matricula-carta" placeholder="LL-0000-XX">
-        </div>
-        <div>
-          <div class="campo-label">Matrícula remolque</div>
-          <input class="obra-input" id="input-remolque" placeholder="Si aplica...">
-        </div>
-      </div>
-      <div style="margin-bottom:10px;">
-        <div class="campo-label">Lugar de carga (cantera/origen)</div>
-        <input class="obra-input" id="input-origen" value="Almacelles, Lleida" placeholder="Lugar de carga...">
-      </div>
-      <div>
-        <div class="campo-label">Condiciones especiales</div>
-        <input class="obra-input" id="input-condiciones" placeholder="Humedad, fragile, temperatura... (opcional)">
       </div>
     </div>
 
@@ -423,8 +392,7 @@ body{font-family:'Barlow',sans-serif;background:var(--arena);color:var(--text);m
     <div class="modal-num">Número: <span id="modal-num-txt"></span></div>
     <div class="modal-email-status" id="modal-email-status"></div>
     <div class="modal-btns">
-      <button class="btn-pdf" onclick="descargarPDF()">Albarán PDF</button>
-      <button class="btn-pdf" onclick="descargarCartaPorte()" style="background:var(--negro);margin-top:2px;">Carta de Porte PDF</button>
+      <button class="btn-pdf" onclick="descargarPDF()">Descargar PDF</button>
       <button class="btn-nuevo" onclick="nuevoAlbaran()">Nueva carga</button>
     </div>
   </div>
@@ -532,7 +500,6 @@ function entrar(){
   document.getElementById('screen-main').classList.add('active');
   document.getElementById('topbar-name').textContent=choferSel.nombre;
   document.getElementById('topbar-mat').textContent=choferSel.matricula;
-  document.getElementById('input-matricula-carta').value=choferSel.matricula;
   iniciarFirma();
   actualizarBtn();
 }
@@ -980,89 +947,10 @@ function generarPDFBlob(a){
   return doc;
 }
 
-function generarCartaPorte(a){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({unit:'mm', format:'a5'});
-  const W=148, mg=10;
-
-  // CABECERA
-  doc.setFillColor(28,26,23);
-  doc.rect(0,0,W,10,'F');
-  doc.setTextColor(232,101,10); doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('CARTA DE PORTE', mg, 7);
-  doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal');
-  doc.text('Real Decreto 159/2023 · Transporte profesional de mercancías', W-mg, 7, {align:'right'});
-
-  // LOGO
-  try{ doc.addImage(LOGO_URI,'PNG',mg,13,45,15); }catch(e){}
-  doc.setFontSize(7); doc.setTextColor(100,100,100);
-  doc.text('C.I.F. B-25.346.719 · Melcior de Guàrdia, 31 · 25100 Almacelles · excabarroso@gmail.com', mg, 31);
-
-  // Nº y fecha
-  doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(28,26,23);
-  doc.text('Nº '+a.num, W-mg, 16, {align:'right'});
-  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
-  doc.text(a.fecha+' · '+a.hora, W-mg, 21, {align:'right'});
-
-  doc.setDrawColor(220,215,205); doc.setLineWidth(0.3);
-  doc.line(mg,33,W-mg,33);
-
-  let y=38;
-  const bloque = (titulo, valor) => {
-    doc.setFillColor(245,240,232);
-    doc.rect(mg,y,W-mg*2,5,'F');
-    doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(186,80,8);
-    doc.text(titulo.toUpperCase(), mg+2, y+3.5);
-    y+=5;
-    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(28,26,23);
-    doc.text(valor||'—', mg+2, y+4);
-    y+=8;
-  };
-
-  bloque('Cargador (empresa que entrega)', 'Excavaciones Barroso SL · C.I.F. B-25.346.719');
-  bloque('Transportista', (a.transportista||'Excavaciones Barroso SL')+' · Conductor: '+a.chofer.nombre);
-  bloque('Destinatario (obra/cliente)', a.cliente.nombre+(a.obra?' · Obra: '+a.obra:''));
-  bloque('Descripción de la mercancía', a.aridos.map(x=>x.nombre+': '+x.cantidad+' '+x.unidad.toUpperCase()).join(' | ')+(a.condiciones?' · '+a.condiciones:''));
-  bloque('Lugar de carga (origen)', a.origen||'Almacelles, Lleida');
-  bloque('Lugar de descarga (destino)', a.obra||a.dirGps||'—');
-  bloque('Matrícula camión', a.matriculaCarta||a.chofer.matricula);
-  if(a.remolque) bloque('Matrícula remolque', a.remolque);
-  bloque('Fecha y hora de carga', a.fecha+' · Salida: '+(a.horaSalida||'—')+' · Llegada: '+(a.horaLlegada||'—'));
-  if(a.dirGps) bloque('Ubicación GPS', a.dirGps);
-
-  // FIRMAS
-  y+=4;
-  doc.setDrawColor(220,215,205); doc.line(mg,y,W-mg,y); y+=4;
-  doc.setFontSize(7); doc.setTextColor(100,100,100);
-  doc.text('FIRMA CARGADOR / TRANSPORTISTA', mg, y); y+=3;
-  if(a.firma){ try{ doc.addImage(a.firma,'PNG',mg,y,55,20); }catch(e){} }
-  y+=24;
-  doc.line(mg,y,mg+55,y); y+=3;
-  doc.text('Excavaciones Barroso SL', mg, y);
-
-  doc.line(W/2+10,y-27,W-mg,y-27);
-  doc.text('Firma destinatario / conforme', W/2+10, y);
-
-  // PIE legal
-  doc.setFillColor(245,240,232);
-  doc.rect(0,196,W,10,'F');
-  doc.setFontSize(6); doc.setTextColor(120,120,120);
-  doc.text('Documento obligatorio según R.D. 159/2023 · Transporte público de mercancías por carretera', W/2, 199, {align:'center'});
-  doc.text('Conservar durante el transporte y 3 años · Excavaciones Barroso SL · excabarroso@gmail.com', W/2, 203, {align:'center'});
-
-  return doc;
-}
-
 function descargarPDF(){
   if(!albaranActual) return;
   const doc=generarPDFBlob(albaranActual);
   doc.save('Albaran-Barroso-'+albaranActual.num+'.pdf');
-}
-
-function descargarCartaPorte(){
-  if(!albaranActual) return;
-  const doc=generarCartaPorte(albaranActual);
-  doc.save('CartaPorte-Barroso-'+albaranActual.num+'.pdf');
 }
 
 // ═══ EMAILS ═══
@@ -1120,9 +1008,6 @@ function nuevoAlbaran(){
   clienteSel=null; firmaActiva=false; firmaData=null;
   document.getElementById('search-cliente').value='';
   document.getElementById('input-obra').value='';
-  document.getElementById('input-remolque').value='';
-  document.getElementById('input-condiciones').value='';
-  if(choferSel) document.getElementById('input-matricula-carta').value=choferSel.matricula;
   document.getElementById('input-descripcion').value='';
   document.getElementById('input-notas').value='';
   ARIDOS.forEach(a=>{
