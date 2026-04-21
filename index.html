@@ -412,6 +412,7 @@ body{font-family:'Barlow',sans-serif;background:var(--arena);color:var(--text);m
     <button class="btn-generar" id="btn-generar" disabled onclick="generarAlbaran()">
       Generar y enviar albarán
     </button>
+    <div id="btn-generar-lbl" style="text-align:center;font-size:12px;color:var(--text2);margin-top:6px;">Selecciona un cliente para continuar</div>
   </div>
 </div>
 
@@ -595,7 +596,13 @@ function renderClientes(filtro=''){
     </div>`).join('');
 }
 function filtrarClientes(){ renderClientes(document.getElementById('search-cliente').value); }
-function selCliente(id){ clienteSel=clientes.find(c=>c.id===id); renderClientes(document.getElementById('search-cliente').value); actualizarBtn(); }
+function selCliente(id){ 
+  clienteSel=clientes.find(c=>c.id===id); 
+  renderClientes(document.getElementById('search-cliente').value); 
+  actualizarBtn();
+  // Scroll suave hacia abajo para que el chofer vea el formulario
+  setTimeout(()=>{ const el=document.getElementById('input-obra'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },200);
+}
 function abrirModalCliente(){ document.getElementById('modal-cliente').classList.add('show'); }
 function cerrarModalCliente(){
   document.getElementById('modal-cliente').classList.remove('show');
@@ -806,14 +813,27 @@ function convDesdeM3(){
 // ═══ VALIDACIÓN ═══
 function actualizarBtn(){
   const aridos=getAridosDatos();
-  document.getElementById('btn-generar').disabled=!(clienteSel&&aridos.length>0);
+  const btn=document.getElementById('btn-generar');
+  const lbl=document.getElementById('btn-generar-lbl');
+  // Solo necesita cliente para activarse — material y firma son recomendados
+  if(!clienteSel){
+    btn.disabled=true;
+    if(lbl) lbl.textContent='Selecciona un cliente para continuar';
+  } else {
+    btn.disabled=false;
+    if(lbl) lbl.textContent='';
+  }
 }
 function actualizarBadge(){ document.getElementById('albaran-badge').textContent='#'+String(numAlbaran).padStart(4,'0'); }
 
 // ═══ GENERAR ALBARÁN ═══
 function generarAlbaran(){
   const aridos=getAridosDatos();
-  if(!clienteSel||!aridos.length){ showToast('Selecciona cliente y añade al menos un material'); return; }
+  if(!clienteSel){ showToast('Selecciona un cliente'); return; }
+  if(!firmaActiva){ 
+    const ok=confirm('No hay firma del cliente. ¿Generar el albarán igualmente?');
+    if(!ok) return;
+  }
   const num=String(numAlbaran).padStart(4,'0');
   const ahora=new Date();
   const dia=String(ahora.getDate()).padStart(2,'0');
