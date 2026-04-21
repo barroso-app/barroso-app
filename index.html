@@ -657,17 +657,59 @@ function iniciarFirma(){
   canvas.height=canvas.offsetHeight*window.devicePixelRatio;
   ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
   ctx.strokeStyle='#1C1A17'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round';
-  let drawing=false, hasFirma=false;
-  const getPos=e=>{ const r=canvas.getBoundingClientRect(); const s=e.touches?e.touches[0]:e; return {x:s.clientX-r.left,y:s.clientY-r.top}; };
-  const start=e=>{ e.preventDefault(); drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
-  const draw=e=>{ if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke();
-    if(!hasFirma){ hasFirma=true; document.getElementById('firma-ok').style.display='flex'; firmaActiva=true; actualizarBtn(); }
-    firmaData=canvas.toDataURL();
+  let drawing=false, firmaHecha=false;
+
+  const getPos=e=>{
+    const r=canvas.getBoundingClientRect();
+    const s=e.touches?e.touches[0]:e;
+    return {x:s.clientX-r.left,y:s.clientY-r.top};
   };
-  const end=()=>drawing=false;
-  canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',draw); canvas.addEventListener('mouseup',end);
-  canvas.addEventListener('touchstart',start,{passive:false}); canvas.addEventListener('touchmove',draw,{passive:false}); canvas.addEventListener('touchend',end);
-  window._firmaReset=()=>{ ctx.clearRect(0,0,canvas.offsetWidth,canvas.offsetHeight); hasFirma=firmaActiva=false; firmaData=null; document.getElementById('firma-ok').style.display='none'; actualizarBtn(); };
+
+  const start=e=>{
+    if(firmaHecha) return;
+    e.preventDefault(); drawing=true;
+    const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+  };
+
+  const move=e=>{
+    if(!drawing||firmaHecha) return;
+    e.preventDefault();
+    const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke();
+  };
+
+  const end=e=>{
+    if(!drawing) return;
+    drawing=false;
+    firmaData=canvas.toDataURL();
+    if(!firmaHecha){
+      firmaHecha=true; firmaActiva=true;
+      canvas.style.pointerEvents='none';
+      canvas.style.border='2px solid #16a34a';
+      canvas.style.opacity='0.92';
+      const ok=document.getElementById('firma-ok');
+      if(ok) ok.style.display='flex';
+      actualizarBtn();
+      showToast('Firma registrada');
+    }
+  };
+
+  canvas.addEventListener('mousedown',start);
+  canvas.addEventListener('mousemove',move);
+  canvas.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',end,{passive:false});
+
+  window._firmaReset=()=>{
+    ctx.clearRect(0,0,canvas.offsetWidth,canvas.offsetHeight);
+    firmaHecha=false; firmaActiva=false; firmaData=null; drawing=false;
+    canvas.style.pointerEvents='auto';
+    canvas.style.border='1.5px solid var(--arena2)';
+    canvas.style.opacity='1';
+    const ok=document.getElementById('firma-ok');
+    if(ok) ok.style.display='none';
+    actualizarBtn();
+  };
 }
 function limpiarFirma(){ if(window._firmaReset) window._firmaReset(); }
 
