@@ -221,16 +221,16 @@ tbody td{padding:10px 12px;color:var(--tx);}
   </div>
   <nav class="sb-nav">
     <div class="sb-section">Principal</div>
-    <div class="sb-item active" onclick="navTo('dashboard')"><span class="sb-icon">📊</span>Dashboard<span class="sb-badge" id="badge-hoy">0</span></div>
-    <div class="sb-item" onclick="navTo('albaranes')"><span class="sb-icon">📋</span>Albaranes</div>
-    <div class="sb-item" onclick="navTo('mapa')"><span class="sb-icon">🗺️</span>Mapa GPS</div>
+    <div class="sb-item active" data-page="dashboard" onclick="navTo('dashboard')"><span class="sb-icon">📊</span>Dashboard<span class="sb-badge" id="badge-hoy">0</span></div>
+    <div class="sb-item" data-page="albaranes" onclick="navTo('albaranes')"><span class="sb-icon">📋</span>Albaranes</div>
+    <div class="sb-item" data-page="mapa" onclick="navTo('mapa')"><span class="sb-icon">🗺️</span>Mapa GPS</div>
     <div class="sb-section">Análisis</div>
-    <div class="sb-item" onclick="navTo('estadisticas')"><span class="sb-icon">📈</span>Estadísticas</div>
-    <div class="sb-item" onclick="navTo('choferes')"><span class="sb-icon">👷</span>Choferes</div>
-    <div class="sb-item" onclick="navTo('clientes')"><span class="sb-icon">🏠</span>Clientes</div>
+    <div class="sb-item" data-page="estadisticas" onclick="navTo('estadisticas')"><span class="sb-icon">📈</span>Estadísticas</div>
+    <div class="sb-item" data-page="choferes" onclick="navTo('choferes')"><span class="sb-icon">👷</span>Choferes</div>
+    <div class="sb-item" data-page="clientes" onclick="navTo('clientes')"><span class="sb-icon">🏠</span>Clientes</div>
     <div class="sb-section">Herramientas</div>
-    <div class="sb-item" onclick="navTo('ia')"><span class="sb-icon">🤖</span>Asistente IA</div>
-    <div class="sb-item" onclick="navTo('config')"><span class="sb-icon">⚙️</span>Configuración</div>
+    <div class="sb-item" data-page="ia" onclick="navTo('ia')"><span class="sb-icon">🤖</span>Asistente IA</div>
+    <div class="sb-item" data-page="config" onclick="navTo('config')"><span class="sb-icon">⚙️</span>Configuración</div>
   </nav>
   <div class="sb-bottom">
     <div class="sb-user">
@@ -1057,9 +1057,12 @@ document.getElementById('modal-bg').addEventListener('click',e=>{ if(e.target===
 function navTo(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.querySelector(`.sb-item[onclick="navTo('${page}')"]`)?.classList.add('active');
-  document.getElementById('topbar-title').textContent=TITULOS[page]||page;
+  const pageEl = document.getElementById('page-'+page);
+  if(pageEl) pageEl.classList.add('active');
+  const sbEl = document.querySelector('.sb-item[data-page="'+page+'"]');
+  if(sbEl) sbEl.classList.add('active');
+  const titleEl = document.getElementById('topbar-title');
+  if(titleEl) titleEl.textContent = TITULOS[page]||page;
   if(page==='estadisticas') setTimeout(renderEstadisticas,100);
   if(page==='mapa') renderChoferesMapa();
 }
