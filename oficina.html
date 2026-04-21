@@ -878,8 +878,8 @@ function renderListaChoferes(){
         </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn-ghost" style="flex:1;padding:8px;font-size:13px;" onclick="editarChofer(${i})">✏ Editar ficha</button>
-        <button class="btn-danger" onclick="confirmarEliminarChofer(${i})" title="Eliminar">🗑</button>
+        <button class="btn-ghost" style="flex:1;padding:8px;font-size:13px;" onclick="editarChofer(${i})">✏ Editar</button>
+        <button class="btn-danger" onclick="confirmarEliminarChofer(${i})">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -911,15 +911,12 @@ function editarChofer(i){ abrirModalChofer(i); }
 
 function confirmarEliminarChofer(i){
   const c=choferes[i];
-  if(!confirm('¿Eliminar a '+c.nombre+' ('+c.matricula+')?
-
-Sus albaranes históricos se conservarán.')) return;
+  if(!confirm('Eliminar a '+c.nombre+'?')) return;
   choferes.splice(i,1);
   localStorage.setItem('barroso_choferes_v2',JSON.stringify(choferes));
   renderListaChoferes();
   showToast('Chofer eliminado');
 }
-
 function guardarChofer(idx=-1){
   const n=document.getElementById('nc-nombre').value.trim();
   const m=document.getElementById('nc-mat').value.trim();
@@ -1075,8 +1072,8 @@ function navTo(page){
   if(pageEl) pageEl.classList.add('active');
   const sbEl=document.querySelector('.sb-item[data-page="'+page+'"]');
   if(sbEl) sbEl.classList.add('active');
-  const titleEl=document.getElementById('topbar-title');
-  if(titleEl) titleEl.textContent=TITULOS[page]||page;
+  const t=document.getElementById('topbar-title');
+  if(t) t.textContent=TITULOS[page]||page;
   if(page==='estadisticas') setTimeout(renderEstadisticas,100);
   if(page==='mapa') renderChoferesMapa();
 }
