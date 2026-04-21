@@ -717,11 +717,19 @@ function exportarCSV(){
     mats.forEach(m=>rows.push([a.num,a.fecha,a.hora||"",a.cliente?.nombre||"",a.cliente?.cif||"",a.chofer?.nombre||"",a.chofer?.matricula||"",m.nombre,m.cantidad,m.unidad,a.obra||"",a.gps?a.gps.lat+","+a.gps.lng:""]));
     if(!mats.length) rows.push([a.num,a.fecha,a.hora||"",a.cliente?.nombre||"",a.cliente?.cif||"",a.chofer?.nombre||"",a.chofer?.matricula||"","—","—","—",a.obra||"","—"]);
   });
-  const csv=rows.map(r=>r.map(v=>'"'+(String(v||"")).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const csv="﻿"+rows.map(r=>r.map(v=>'"'+(String(v||"")).replace(/"/g,'""')+'"').join(",")).join("\r\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a"); a.href=url; a.download="Barroso-Albaranes.csv"; a.click();
-  URL.revokeObjectURL(url);
+  if(navigator.msSaveBlob){
+    navigator.msSaveBlob(blob,"Barroso-Albaranes.csv");
+  } else {
+    const link=document.createElement("a");
+    link.href=URL.createObjectURL(blob);
+    link.setAttribute("download","Barroso-Albaranes.csv");
+    link.style.display="none";
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(()=>{ document.body.removeChild(link); URL.revokeObjectURL(link.href); },100);
+  }
   showToast("Exportado: "+albaranes.length+" albaranes");
 }
 
