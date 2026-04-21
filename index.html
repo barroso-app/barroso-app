@@ -464,15 +464,15 @@ const LOGO_URI = 'data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BS
 // DATOS
 // ═══════════════════════════════════
 const CHOFERES = [
-  {nombre:'Antoni Ros',     matricula:'LL-4821-MH', iniciales:'AR'},
-  {nombre:'Jordi Pérez',    matricula:'LL-3302-KP', iniciales:'JP'},
-  {nombre:'Miguel Torres',  matricula:'LL-5511-BN', iniciales:'MT'},
-  {nombre:'Carlos Díaz',    matricula:'LL-2287-QR', iniciales:'CD'},
-  {nombre:'Paco Llopis',    matricula:'LL-6643-VX', iniciales:'PL'},
-  {nombre:'Ramon Solà',     matricula:'LL-1190-TW', iniciales:'RS'},
-  {nombre:'David Martí',    matricula:'LL-7754-AG', iniciales:'DM'},
-  {nombre:'Josep Vila',     matricula:'LL-4433-EH', iniciales:'JV'},
-  {nombre:'Miquel Camps',   matricula:'LL-8821-FL', iniciales:'MC'},
+  {nombre:'Antoni Ros',     matricula:'LL-4821-MH', iniciales:'AR', pin:'1001'},
+  {nombre:'Jordi Pérez',    matricula:'LL-3302-KP', iniciales:'JP', pin:'1002'},
+  {nombre:'Miguel Torres',  matricula:'LL-5511-BN', iniciales:'MT', pin:'1003'},
+  {nombre:'Carlos Díaz',    matricula:'LL-2287-QR', iniciales:'CD', pin:'1004'},
+  {nombre:'Paco Llopis',    matricula:'LL-6643-VX', iniciales:'PL', pin:'1005'},
+  {nombre:'Ramon Solà',     matricula:'LL-1190-TW', iniciales:'RS', pin:'1006'},
+  {nombre:'David Martí',    matricula:'LL-7754-AG', iniciales:'DM', pin:'1007'},
+  {nombre:'Josep Vila',     matricula:'LL-4433-EH', iniciales:'JV', pin:'1008'},
+  {nombre:'Miquel Camps',   matricula:'LL-8821-FL', iniciales:'MC', pin:'1009'},
 ];
 
 const ARIDOS = [
@@ -530,13 +530,85 @@ function selChofer(i){
 }
 function entrar(){
   if(!choferSel) return;
-  document.getElementById('screen-login').classList.remove('active');
-  document.getElementById('screen-main').classList.add('active');
-  document.getElementById('topbar-name').textContent=choferSel.nombre;
-  document.getElementById('topbar-mat').textContent=choferSel.matricula;
-  document.getElementById('input-matricula-carta').value=choferSel.matricula;
-  iniciarFirma();
-  actualizarBtn();
+  // Mostrar pantalla PIN del chofer
+  mostrarPinChofer();
+}
+
+function mostrarPinChofer(){
+  // Crear overlay de PIN
+  const overlay = document.createElement('div');
+  overlay.id = 'pin-chofer-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--negro);z-index:800;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="color:#888;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Verificación</div>
+    <div style="color:#fff;font-size:16px;font-weight:600;margin-bottom:6px;">${choferSel.nombre}</div>
+    <div style="color:#E8650A;font-size:13px;margin-bottom:20px;">Introduce tu PIN personal</div>
+    <div style="display:flex;gap:12px;margin-bottom:16px;" id="pcd">
+      <div id="pc0" style="width:14px;height:14px;border-radius:50%;border:2px solid #444;transition:all 0.2s;"></div>
+      <div id="pc1" style="width:14px;height:14px;border-radius:50%;border:2px solid #444;transition:all 0.2s;"></div>
+      <div id="pc2" style="width:14px;height:14px;border-radius:50%;border:2px solid #444;transition:all 0.2s;"></div>
+      <div id="pc3" style="width:14px;height:14px;border-radius:50%;border:2px solid #444;transition:all 0.2s;"></div>
+    </div>
+    <div id="pc-error" style="color:#e53935;font-size:13px;margin-bottom:12px;height:18px;"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,72px);gap:10px;">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="pcKey(${n})" style="width:72px;height:72px;border-radius:50%;border:2px solid #333;background:transparent;color:#fff;font-size:24px;font-weight:500;cursor:pointer;font-family:'Barlow',sans-serif;">${n}</button>`).join('')}
+      <div></div>
+      <button onclick="pcKey(0)" style="width:72px;height:72px;border-radius:50%;border:2px solid #333;background:transparent;color:#fff;font-size:24px;font-weight:500;cursor:pointer;font-family:'Barlow',sans-serif;">0</button>
+      <button onclick="pcBorrar()" style="width:72px;height:72px;border-radius:50%;border:2px solid #333;background:transparent;color:#fff;font-size:20px;cursor:pointer;">⌫</button>
+    </div>
+    <button onclick="cancelarPin()" style="margin-top:20px;background:transparent;border:none;color:#666;font-size:13px;cursor:pointer;font-family:'Barlow',sans-serif;">Cancelar</button>
+  `;
+  document.body.appendChild(overlay);
+  window._pcVal = '';
+  window._pcIntentos = 0;
+}
+
+function pcKey(n){
+  if(window._pcVal.length>=4) return;
+  window._pcVal += String(n);
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pc'+i);
+    if(d){ d.style.background=i<window._pcVal.length?'#E8650A':'transparent'; d.style.borderColor=i<window._pcVal.length?'#E8650A':'#444'; }
+  }
+  if(window._pcVal.length===4) setTimeout(checkPinChofer,280);
+}
+function pcBorrar(){ if(window._pcVal.length>0){ window._pcVal=window._pcVal.slice(0,-1); for(let i=0;i<4;i++){const d=document.getElementById('pc'+i);if(d){d.style.background=i<window._pcVal.length?'#E8650A':'transparent';d.style.borderColor=i<window._pcVal.length?'#E8650A':'#444';}} } }
+function cancelarPin(){ document.getElementById('pin-chofer-overlay')?.remove(); window._pcVal=''; }
+
+function checkPinChofer(){
+  // Obtener PIN del localStorage (puede haber sido actualizado por oficina)
+  let pinCorrecto = choferSel.pin || '0000';
+  const chofLocal = localStorage.getItem('brso_choferes_chofer');
+  if(chofLocal){
+    const lista = JSON.parse(chofLocal);
+    const found = lista.find(c=>c.nombre===choferSel.nombre);
+    if(found&&found.pin) pinCorrecto = found.pin;
+  }
+  if(window._pcVal === pinCorrecto){
+    document.getElementById('pin-chofer-overlay')?.remove();
+    // Entrar a la app
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-main').classList.add('active');
+    document.getElementById('topbar-name').textContent=choferSel.nombre;
+    document.getElementById('topbar-mat').textContent=choferSel.matricula;
+    document.getElementById('input-matricula-carta').value=choferSel.matricula;
+    iniciarFirma();
+    actualizarBtn();
+  } else {
+    window._pcIntentos++;
+    if(navigator.vibrate) navigator.vibrate([100,50,100]);
+    window._pcVal='';
+    for(let i=0;i<4;i++){const d=document.getElementById('pc'+i);if(d){d.style.background='transparent';d.style.borderColor='#444';}}
+    const errEl=document.getElementById('pc-error');
+    if(errEl){
+      if(window._pcIntentos>=3){
+        errEl.textContent='Demasiados intentos — contacta con oficina';
+        setTimeout(cancelarPin,3000);
+      } else {
+        errEl.textContent='PIN incorrecto · '+(3-window._pcIntentos)+' intentos restantes';
+      }
+    }
+  }
 }
 
 // ═══ ÁRIDOS TABLE ═══
